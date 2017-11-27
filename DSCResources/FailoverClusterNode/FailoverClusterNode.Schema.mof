@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("FailoverClusterNode")]
+class FailoverClusterNode : OMI_BaseResource
+{
+    [Key] String NodeName;
+    [Required] String ClusterName;  
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};

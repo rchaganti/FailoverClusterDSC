@@ -1,0 +1,10 @@
+[ClassVersion("1.0.0.0"), FriendlyName("FailoverCluster")]
+class FailoverCluster : OMI_BaseResource
+{
+    [Key] String ClusterName;
+    [Required] String StaticAddress;  
+    [Write] Boolean NoStorage;
+    [Write, ValueMap{"Dns","ActiveDirectoryAndDns","None"}, Values{"Dns","ActiveDirectoryAndDns","None"}] String AdministrativeAccessPoint;
+    [Write] String IgnoreNetwork[];
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};
