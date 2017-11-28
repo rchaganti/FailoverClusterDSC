@@ -99,3 +99,43 @@ function Test-ClusterParameter
         throw $localizedData.ResourceMissingError
     }
 }
+
+function Get-ClusterQuorumInformation
+{
+    [CmdletBinding()]
+    param
+    (
+
+    )
+
+    $quorumInfo = Get-ClusterQuorum
+    $quorumResource = $quorumInfo.QuorumResource.Name
+
+    if ($quorumInfo.QuorumType -eq 'Majority')
+    {
+        if ($quorumInfo.QuorumResource.ResourceType.Name -eq 'Physical Disk')
+        {
+            $quorumType = 'NodeAndDiskMajority'
+        }
+        elseif ($quorumInfo.QuorumResource.ResourceType.Name -eq 'File Share Witness')
+        {
+            $quorumType = 'NodeAndFileShareMajority'
+            $quorumResource = $quorumInfo.QuorumResource |
+            Get-ClusterParameter -Name SharePath |
+            Select-Object -ExpandProperty Value            
+        }
+        elseif ($null -eq $quorumInfo.QuorumResource)
+        {
+            $quorumType = 'NodeMajority'
+        }
+    }
+    else
+    {
+        $quorumType = 'DiskOnly'    
+    }
+    
+    return @{
+        QuorumType = $quorumType
+        Resource = $quorumResource
+    }
+}
