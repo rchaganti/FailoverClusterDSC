@@ -49,7 +49,7 @@ function Get-TargetResource
             StaticAddress = $StaticAddress
         }
 
-        $clusterInfo = Get-ClusterInformation -ClusterName $ClusterName
+        $clusterInfo = Get-ClusterInformation -ClusterName $ClusterName -Verbose
 
         if ($clusterInfo)
         {
