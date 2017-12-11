@@ -51,7 +51,7 @@ function Get-TargetResource
         
         #Get Quorum information
         Write-Verbose -Message $localizedData.GetQuorum
-        $quorumInfo = Get-ClusterInformation -Verbose
+        $quorumInfo = Get-ClusterQuorumInformation -Verbose
         
         $configuration.Add('QuorumType',$quorumInfo.QuorumType)
         $configuration.Add('Resource',$quorumInfo.Resource)
@@ -105,15 +105,10 @@ function Set-TargetResource
     {
         #Get Quorum information
         Write-Verbose -Message $localizedData.GetQuorum
-        $quorumInfo = Get-ClusterInformation -Verbose
+        $quorumInfo = Get-ClusterQuorumInformation -Verbose
 
         #We can set the quorum directly here. Simply map the QuorumType to a witness type and set it.
         $setParams = @{}
-
-        if ($QuorumType -ne 'NodeMajority')
-        {
-            $setParams.Add('Resource',$Resource)
-        }
 
         Switch ($QuorumType)
         {
@@ -122,15 +117,15 @@ function Set-TargetResource
             }
 
             'NodeAndDiskMajority' {
-                $setParams.Add('DiskWitness', $true)
+                $setParams.Add('DiskWitness', $Resource)
             }
 
             'NodeAndFileShareMajority' {
-                $setParams.Add('FileShareWitness', $true)
+                $setParams.Add('FileShareWitness', $Resource)
             }
 
             'DiskOnly' {
-                $setParams.Add('DiskOnly', $true)
+                $setParams.Add('DiskOnly', $Resource)
             }
         }
 
@@ -186,7 +181,7 @@ function Test-TargetResource
     {
         #Get Quorum information
         Write-Verbose -Message $localizedData.GetQuorum
-        $quorumInfo = Get-ClusterInformation -Verbose
+        $quorumInfo = Get-ClusterQuorumInformation -Verbose
         
         if ($QuorumType -ne $quorumInfo.QuorumType)
         {

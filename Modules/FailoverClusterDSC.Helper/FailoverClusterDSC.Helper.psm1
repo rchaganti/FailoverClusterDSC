@@ -44,9 +44,9 @@ function Get-ClusterInformation
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [String]
-        $ClusterName
+        $ClusterName = '.'
     )
 
     $clusterInfo = @{}
