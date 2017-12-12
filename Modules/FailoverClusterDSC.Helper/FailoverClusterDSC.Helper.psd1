@@ -1,9 +1,12 @@
 @{
+    #Root module
+    RootModule = 'FailoverClusterDsc.Helper.psm1'
+
     # Version number of this module.
     ModuleVersion = '1.0.0.0'
     
     # ID used to uniquely identify this module
-    GUID = 'dd51125a-1777-40b4-63b2-91ac6e753dd4'
+    GUID = '2986f920-89c5-44f1-8143-5a65e1ac601c'
     
     # Author of this module
     Author = 'Ravikanth Chaganti'
@@ -18,7 +21,7 @@
     Description = 'Module with DSC Resources for Microsoft failover cluster configurations DSC helper functions.'
     
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '4.0'
+    PowerShellVersion = '5.0'
     
     # Minimum version of the common language runtime (CLR) required by this module
     CLRVersion = '4.0'

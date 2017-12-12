@@ -3,7 +3,7 @@
     ModuleVersion = '1.0.0.0'
     
     # ID used to uniquely identify this module
-    GUID = 'aa51125a-1777-41a4-63b2-91ac6e753bb6'
+    GUID = '4ba8fe69-8862-423f-af0a-4c55d39c5092'
     
     # Author of this module
     Author = 'Ravikanth Chaganti'
@@ -18,7 +18,7 @@
     Description = 'Module with DSC Resources for Microsoft failover cluster configurations.'
     
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '4.0'
+    PowerShellVersion = '5.0'
     
     # Minimum version of the common language runtime (CLR) required by this module
     CLRVersion = '4.0'
