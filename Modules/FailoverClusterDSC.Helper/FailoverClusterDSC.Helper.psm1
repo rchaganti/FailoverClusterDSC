@@ -110,19 +110,31 @@ function Get-ClusterQuorumInformation
 
     $quorumInfo = Get-ClusterQuorum
     $quorumResource = $quorumInfo.QuorumResource.Name
-
+    $quorumResourceName = $quorumInfo.QuorumResource.ResourceType.Name
     if ($quorumInfo.QuorumType -eq 'Majority')
     {
-        if ($quorumInfo.QuorumResource.ResourceType.Name -eq 'Physical Disk')
+        if ($quorumResourceName -eq 'Physical Disk')
         {
             $quorumType = 'NodeAndDiskMajority'
         }
-        elseif ($quorumInfo.QuorumResource.ResourceType.Name -eq 'File Share Witness')
+        elseif ($quorumResourceName -eq 'File Share Witness')
         {
             $quorumType = 'NodeAndFileShareMajority'
             $quorumResource = $quorumInfo.QuorumResource |
             Get-ClusterParameter -Name SharePath |
             Select-Object -ExpandProperty Value            
+        }
+        elseif ($quorumResourceName -eq 'Cloud Witness')
+        {
+            $quorumType = 'CloudWitness'
+            $quorumResource = @{
+                AccountName = $quorumInfo.QuorumResource |
+                                Get-ClusterParameter -Name AccountName |
+                                Select-Object -ExpandProperty Value
+                EndpointInfo = $quorumInfo.QuorumResource |
+                                Get-ClusterParameter -Name EndpointInfo |
+                                Select-Object -ExpandProperty Value
+            }
         }
         elseif ($null -eq $quorumInfo.QuorumResource)
         {

@@ -1,9 +1,10 @@
 [ClassVersion("1.0.0.0"), FriendlyName("FailoverClusterCloudWitness")]
 class FailoverClusterCloudWitness : OMI_BaseResource
 {
-    [Key] String Id;
-    [Required] String ResourceType;
-    [Required] String ParameterName;  
-    [Required] String ParameterValue;
+    [Key] String IsSingleInstance;
+    [Required] String AccessKey;
+    [Write] String Endpoint;  
+    [Required] String AccountName;
+    [Write] Boolean Force;
     [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;    
 };

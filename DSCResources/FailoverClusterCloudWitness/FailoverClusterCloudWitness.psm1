@@ -9,23 +9,23 @@ Import-Module -Name (Join-Path -Path $modulePath `
 #region localizeddata
 if (Test-Path "${PSScriptRoot}\${PSUICulture}")
 {
-    Import-LocalizedData -BindingVariable LocalizedData -filename FailoverClusterResourceParameter.psd1 `
+    Import-LocalizedData -BindingVariable LocalizedData -filename FailoverClusterCloudWitness.psd1 `
                          -BaseDirectory "${PSScriptRoot}\${PSUICulture}"
 } 
 else
 {
     #fallback to en-US
-    Import-LocalizedData -BindingVariable LocalizedData -filename FailoverClusterResourceParameter.psd1 `
+    Import-LocalizedData -BindingVariable LocalizedData -filename FailoverClusterCloudWitness.psd1 `
                          -BaseDirectory "${PSScriptRoot}\en-US"
 }
 #endregion
 
 <#
 .SYNOPSIS
-Gets the current state of the FailoverClusterResourceParameter resource.
+Gets the current state of the FailoverClusterCloudWitness resource.
 
 .DESCRIPTION
-Gets the current state of the FailoverClusterResourceParameter resource.
+Gets the current state of the FailoverClusterCloudWitness resource.
 #>
 function Get-TargetResource
 {
@@ -34,50 +34,37 @@ function Get-TargetResource
     param
     (
         [Parameter(Mandatory = $true)]
+        [ValidateSet('Yes')]
         [String]
-        $Id,
+        $IsSingleInstance,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ResourceType,
+        $AccessKey,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ParameterName,
+        $AccountName,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ParameterValue
+        $Endpoint
     )
 
     if (Test-FCDSCDependency)
     {
         $configuration = @{
-            Id = $Id
-            ResourceType = $ResourceType
-            ParameterName = $ParameterName
-            ParameterValue = $ParameterValue
+            IsSingleInstance = $IsSingleInstance
+            AccessKey = $AccessKey
         }
         
-        if (Test-ClusterParameter -ResourceType $ResourceType -ParameterName $ParameterName)
-        {
-            $clusterParameter = Get-ClusterResourceType -Name $ResourceType | Get-ClusterParameter -Name $ParameterName
-            if ($clusterParameter.ParameterType -ne 'String')
-            {
-                $parameterType = $clusterParameter.ParameterType
-                $ParameterValue = ($ParameterValue -as ($parameterType -as [type]))
-            }
-            
-            if ($ParameterValue -eq $clusterParameter.Value)
-            {
-                $configuration.Add('Ensure','Present')
-            }
-            else
-            {
-                $configuration.Add('Ensure','Absent')    
-            }
-        }
-
+        #Get Quorum information
+        Write-Verbose -Message $localizedData.GetQuorum
+        $quorumInfo = Get-ClusterQuorumInformation -Verbose
+        
+        $configuration.Add('QuorumType',$quorumInfo.QuorumType)
+        $configuration.Add('AccountName',$quorumInfo.Resource.AccountName)
+        $configuration.Add('Endpoint',$quorumInfo.Resource.EndpointInfo)
         return $configuration
     }
 }
@@ -95,20 +82,25 @@ function Set-TargetResource
     param
     (
         [Parameter(Mandatory = $true)]
+        [ValidateSet('Yes')]
         [String]
-        $Id,
+        $IsSingleInstance,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ResourceType,
+        $AccessKey,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ParameterName,
+        $AccountName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [String]
-        $ParameterValue,
+        $Endpoint = 'core.windows.net',
+
+        [Parameter()]
+        [bool]
+        $Force,
         
         [Parameter()]
         [ValidateSet('Present','Absent')]
@@ -118,37 +110,56 @@ function Set-TargetResource
 
     if (Test-FCDSCDependency)
     {
-        $params = $PSBoundParameters.Remove('Id')
-        if (Test-ClusterParameter -ResourceType $ResourceType -ParameterName $ParameterName)
-        {
-            if ($Ensure -eq 'Present')
-            {
-                $paramInfo = Get-ClusterResourceType -Name $ResourceType | Get-ClusterParameter -Name $ParameterName
-                if ($paramInfo.ParameterType -ne 'String')
-                {
-                    $parameterType = $paramInfo.ParameterType
-                    $ParameterValue = ($ParameterValue -as ($parameterType -as [type]))
-                }
+        $params = @{
+            AccountName = $AccountName
+            AccessKey = $AccessKey
+            Endpoint = $Endpoint
+            CloudWitness = $true
+        }
 
-                if ($ParameterValue -ne $paramInfo.Value)
+        if ($Force)
+        {
+            $forceUpdate = $true
+        }
+        else
+        {
+            #Get Quorum information
+            $quorumInfo = Get-ClusterQuorumInformation -Verbose
+            
+            if ($quorumInfo.QuorumType -eq 'CloudWitness')
+            {
+                if ($Ensure -eq 'Present')
                 {
-                    Write-Verbose -Message $localizedData.UpdateParameter
-                    $null = Get-ClusterResourceType -Name $ResourceType | Set-ClusterParameter -Name $ParameterName -Value $ParameterValue
+                    if ($quorumInfo.Resource.EndpointInfo -ne $Endpoint)
+                    {
+                        $forceUpdate = $true
+                    }
+
+                    if ($quorumInfo.AccountName -ne $AccountName)
+                    {
+                        $forceUpdate = $true
+                    }
+                }
+                else
+                {
+                    Write-Verbose -Message $localizedData.RemoveCloudWitness
+                    Set-ClusterQuorum -NoWitness -Verbose    
                 }
             }
             else
             {
-                Write-Verbose -Message $localizedData.DeleteResourceParameter
-                $null = Get-ClusterResourceType -Name $ResourceType | Set-ClusterParameter -Delete -Name $ParameterName -Verbose
+                if ($Ensure -eq 'Present')
+                {
+                    Write-Verbose -Message $localizedData.CreateCloudWitness
+                    $forceUpdate = $true
+                }
             }
         }
-        else
+
+        if ($forceUpdate)
         {
-            if ($Ensure -eq 'Present')
-            {
-                Write-Verbose -Message $localizedData.CreateParameter
-                $null = Get-ClusterResourceType -Name $ResourceType | Set-ClusterParameter -Create -Name $ParameterName -Value $convertedParameterValue -Verbose
-            }
+            Write-Verbose -Message $localizedData.ForcingUpdate
+            Set-ClusterQuorum @params -Verbose
         }
     }
 }
@@ -167,21 +178,26 @@ function Test-TargetResource
     param
     (
         [Parameter(Mandatory = $true)]
+        [ValidateSet('Yes')]
         [String]
-        $Id,
+        $IsSingleInstance,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ResourceType,
+        $AccessKey,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ParameterName,
+        $AccountName,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $ParameterValue,
+        $Endpoint = 'core.windows.net',
 
+        [Parameter()]
+        [bool]
+        $Force,
+        
         [Parameter()]
         [ValidateSet('Present','Absent')]
         [String]
@@ -190,52 +206,55 @@ function Test-TargetResource
 
     if (Test-FCDSCDependency)
     {
-        if (Test-ClusterParameter -ResourceType $ResourceType -ParameterName $ParameterName)
+        if ($Force)
         {
-            if ($Ensure -eq 'Present')
-            {
-                $paramInfo = Get-ClusterResourceType -Name $ResourceType | Get-ClusterParameter -Name $ParameterName
-                if (-not $paramInfo.IsReadOnly)
-                {
-                    if ($paramInfo.ParameterType -ne 'String')
-                    {
-                        $parameterType = $paramInfo.ParameterType
-                        $ParameterValue = ($ParameterValue -as ($parameterType -as [type]))
-                    }
-
-                    if ($ParameterValue -ne $paramInfo.Value)
-                    {
-                        Write-Verbose -Message $localizedData.ParameterValueNotMatching
-                        return $false
-                    }
-                    else
-                    {
-                        Write-Verbose -Message $localizedData.ParameterInDesiredState
-                        return $true
-                    }
-                }
-                else
-                {
-                    throw $localizedData.ParameterCannotBeUpdated    
-                }
-            }
-            else
-            {
-                Write-Verbose -Message $localizedData.ParameterShouldNotExist
-                return $false 
-            }
+            Write-Verbose -Message $localizedData.ForceSpecifiedShouldUpdate
+            return $false
         }
         else
         {
-            if ($Ensure -eq 'Present')
+            #Get Quorum information
+            Write-Verbose -Message $localizedData.GetQuorum
+            $quorumInfo = Get-ClusterQuorumInformation -Verbose
+            
+            if ($quorumInfo.QuorumType -eq 'CloudWitness')
             {
-                Write-Verbose -Message $localizedData.ShouldCreateParameter
-                return $false
-            } 
+                Write-Verbose -Message $localizedData.CloudWitnessQuorumFound
+                if ($Ensure -eq 'Present')
+                {
+                    if ($quorumInfo.Resource.EndpointInfo -ne $Endpoint)
+                    {
+                        Write-Verbose -Message $localizedData.EndpointNotMatching
+                        return $false
+                    }
+
+                    if ($quorumInfo.Resource.AccountName -ne $AccountName)
+                    {
+                        Write-Verbose -Message $localizedData.AccountNameNotMatching
+                        return $false
+                    }
+
+                    Write-Verbose -Message $localizedData.CloudWitnessExistsNoAction
+                    return $true
+                }
+                else
+                {
+                    Write-Verbose -Message $localizedData.CloudWitnessShouldNotExist
+                    return $false
+                }
+            }
             else
             {
-                Write-Verbose -Message $localizedData.NoParameterNoAction
-                return $true
+                if ($Ensure -eq 'Present')
+                {
+                    Write-Verbose -Message $localizedData.CloudWitnessShouldExist
+                    return $false
+                }
+                else
+                {
+                    Write-Verbose -Message $localizedData.CloudWitessDoesNotExistNoAction
+                    return $true
+                }
             }
         }
     }

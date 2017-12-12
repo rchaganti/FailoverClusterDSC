@@ -1,0 +1,17 @@
+[ClassVersion("1.0.0.0"), FriendlyName("FailoverClusterS2D")]
+class FailoverClusterS2D : OMI_BaseResource
+{
+    [Key] String IsSingleInstance;
+    [Write, ValueMap{"8","16","32","64"}, Values{"8","16","32","64"}] Uint32 CachePageSizeKBytes;
+    [Write] Uint64 CacheMetadataReserveBytes;
+    [Write] String PoolFriendlyName;
+    [Write, ValueMap{"Enabled","Disabled"}, Values{"Enabled","Disabled"}] String CacheState;
+    [Write] String CacheDeviceModel;
+    [Write] String XML;
+    [Read] String CacheModeHDD;
+    [Read] String CacheModeSSD;
+    [Write] Boolean AutoConfig;
+    [Write] Boolean SkipEligibilityChecks;    
+    [Write] Boolean CleanupCache;   
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};
