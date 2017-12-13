@@ -1,7 +1,7 @@
 [ClassVersion("1.0.0.0"), FriendlyName("FailoverClusterS2D")]
 class FailoverClusterS2D : OMI_BaseResource
 {
-    [Key] String IsSingleInstance;
+    [Key, ValueMap{"Yes"}, Values{"Yes"}] String IsSingleInstance;
     [Write, ValueMap{"8","16","32","64"}, Values{"8","16","32","64"}] Uint32 CachePageSizeKBytes;
     [Write] Uint64 CacheMetadataReserveBytes;
     [Write] String PoolFriendlyName;

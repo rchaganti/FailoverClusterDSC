@@ -39,6 +39,7 @@ function Get-TargetResource
         $IsSingleInstance,
 
         [Parameter(Mandatory = $true)]
+        [ValidateSet('NodeMajority', 'NodeAndDiskMajority', 'NodeAndFileShareMajority', 'DiskOnly')]
         [String]
         $QuorumType
     )

@@ -44,11 +44,7 @@ function Get-TargetResource
 
         [Parameter(Mandatory = $true)]
         [String]
-        $AccountName,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $Endpoint
+        $AccountName
     )
 
     if (Test-FCDSCDependency)
@@ -190,7 +186,7 @@ function Test-TargetResource
         [String]
         $AccountName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [String]
         $Endpoint = 'core.windows.net',
 
