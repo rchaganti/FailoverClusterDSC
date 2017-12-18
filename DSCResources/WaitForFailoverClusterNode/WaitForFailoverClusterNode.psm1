@@ -102,23 +102,30 @@ function Set-TargetResource
 
     if (Test-FCDSCDependency)
     {
+        $clusterNodesAvailable = $false
         $clusterInfo = Get-ClusterInformation -ClusterName $ClusterName
         $count = 1
 
-        $clusterNodes = Compare-Object -ReferenceObject $clusterInfo.Node -DifferenceObject $NodeName -PassThru
+        $availableNodes = $NodeName | Where-Object { $_ -in $clusterInfo.Node }
         
-        While ((-not $clusterNodes) -or ($count -eq $RetryCount))
+        While (($availableNodes.Count -ne $NodeName.count) -or ($count -eq $RetryCount))
         {
             Write-Verbose -Message ($localizedData.WaitingOnRetry -f $count)
             Start-Sleep -Seconds $RetryIntervalSec
             
             $clusterInfo = Get-ClusterInformation -ClusterName $ClusterName
-            $clusterNodes = Compare-Object -ReferenceObject $clusterInfo.Node -DifferenceObject $NodeName -PassThru
-
-            $count += 1
+            $availableNodes = $NodeName | Where-Object { $_ -in $clusterInfo.Node }
+            if ($availableNodes.Count -ne $NodeName.count)
+            {
+                $count += 1
+            }
+            else
+            {
+                $clusterNodesAvailable = $true 
+            }
         }
 
-        if ($clusterNodes)
+        if ($availableNodes.Count -eq $NodeName.count)
         {
             Write-Verbose -Message $localizedData.ClusterNodeAvailable
         }
@@ -176,7 +183,8 @@ function Test-TargetResource
         $clusterInfo = Get-ClusterInformation -ClusterName $ClusterName
         if ($clusterInfo)
         {
-            if (Compare-Object -ReferenceObject $clusterInfo.Node -DifferenceObject $NodeName -PassThru)
+            $availableNodes = $NodeName | Where-Object { $_ -in $clusterInfo.Node }
+            if ($availableNodes.Count -ne $NodeName.Count)
             {
                 Write-Verbose -Message $localizedData.ClusterNodeNotAvailable
                 return $false
