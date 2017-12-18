@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("WaitForFailoverCluster")]
+class WaitForFailoverCluster : OMI_BaseResource
+{
+    [Key] String ClusterName;
+    [Write] UInt32 RetryIntervalSec;
+    [Write] UInt32 RetryCount;
+};
