@@ -3,6 +3,7 @@
 
 ##Resources in this module
 |Resource Name| Description|
+|-------------|------------|
 |FailoverClutser| Creates a failover cluster.|
 |FailoverClusterNode| Adds / removes a node to/from a failover cluster|
 |FailoverClusterQuorum| Configures a cluster disk/share/node majority quorum.|
