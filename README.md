@@ -1,7 +1,7 @@
 # FailoverClusterDSC Resource module
 *This is not a fork of the xFailoverCluster module. I am adding only the resources that I am developing from scratch to this FailoverClusterDsc module. These resources will follow the HQRM guidelines.*
 
-##Resources in this module
+## Resources in this module
 
 |Resource Name| Description|
 |-------------|------------|
