@@ -5,7 +5,7 @@
 
 |Resource Name| Description|
 |-------------|------------|
-|FailoverClutser| Creates a failover cluster.|
+|FailoverCluster| Creates a failover cluster.|
 |FailoverClusterNode| Adds / removes a node to/from a failover cluster|
 |FailoverClusterQuorum| Configures a cluster disk/share/node majority quorum.|
 |FailoverClusterCloudWitness| Configures cloud witness for failover cluster.|
